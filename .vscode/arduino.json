@@ -1,0 +1,6 @@
+{
+    "port": "COM5",
+    "board": "arduino:samd:mkrzero",
+    "programmer": "atmel_ice",
+    "sketch": "Code\\IMU_ICM20948\\main\\main.ino"
+}
