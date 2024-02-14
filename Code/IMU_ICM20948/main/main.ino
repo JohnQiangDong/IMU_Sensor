@@ -24,7 +24,25 @@ void loop() {
 
   float gyroX;
   float X_angle;
-  float gyroScaleFactor = 2000.0 / 32767.0;
+  float gyroY;
+  float Y_angle;
+  float gyroZ;
+  float Z_angle;
+
+  float accX;
+  float velX;
+  float disX;
+
+  float accY;
+  float velY;
+  float disY;
+
+  float accZ;
+  float velZ;
+  float disZ;
+
+
+  //float gyroScaleFactor = 2000.0 / 32767.0;
 
   float deltaTime;
   float currentTime;
@@ -36,8 +54,34 @@ void loop() {
     currentTime = millis();
     deltaTime = (currentTime - previousTime) / 1000.0;
 
+    // read gyrometer's values
     gyroX = gyro.gyro.x;
-    //X_angle +=  gyroX * deltaTime;
+    gyroY = gyro.gyro.y;
+    gyroZ = gyro.gyro.z;
+
+    // calculate angle change in 3 axis
+    X_angle +=  gyroX * deltaTime;
+    Y_angle +=  gyroY * deltaTime;
+    Z_angle +=  gyroZ * deltaTime;
+
+    // coordinate transformation according to orientation
+    
+
+    // read accelerometer's values
+    accX = accel.acceleration.x;
+    accY = accel.acceleration.y;
+    accZ = accel.acceleration.z;
+
+    // calculate velocity in 3 axis
+    velX = accX * deltaTime;
+    velY = accY * deltaTime;
+    velZ = accZ * deltaTime;
+
+    // calculate displacement in 3 axis
+    disX = velX * deltaTime;
+    disY = velY * deltaTime;
+    disZ = velZ * deltaTime;
+
     //Serial.println(X_angle);
     //Serial.println(deltaTime);
     delay(10);
