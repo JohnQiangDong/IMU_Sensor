@@ -53,20 +53,20 @@ void setup() {
   IMU_init();
   switch (icm.getAccelRange()) {
     case ICM20948_ACCEL_RANGE_2_G:
-        ACCEL_SCALE_FACTOR = 16384.0;
+        ACCEL_SCALE_FACTOR = 16384.0f;
         //Serial.println("+-2G");
         break;
     case ICM20948_ACCEL_RANGE_4_G:
-        ACCEL_SCALE_FACTOR = 8192.0;
+        ACCEL_SCALE_FACTOR = 8192.0f;
         //Serial.println("+-4G");
         break;
     case ICM20948_ACCEL_RANGE_8_G:
         //Serial.println("+-8G");
-        ACCEL_SCALE_FACTOR = 4096.0;
+        ACCEL_SCALE_FACTOR = 4096.0f;
         break;
     case ICM20948_ACCEL_RANGE_16_G:
         //Serial.println("+-16G");
-        ACCEL_SCALE_FACTOR = 2048.0;
+        ACCEL_SCALE_FACTOR = 2048.0f;
         break;
     }
   switch (icm.getGyroRange()) {
@@ -98,108 +98,68 @@ void loop() {
   sensors_event_t gyro;
   sensors_event_t mag;
   sensors_event_t temp;
-  /*
-  float gyroX;
-  float X_angle;
-  float X_rad;
 
-  float gyroY;
-  float Y_angle;
-  float Y_rad;
-
-  float gyroZ;
-  float Z_angle;
-  float Z_rad;
-
-  float accX;
-  float accX_ref;
-  float velX;
-  float disX;
-
-  float accY;
-  float accY_ref;
-  float velY;
-  float disY;
-
-  float accZ;
-  float accZ_ref;
-  float velZ;
-  float disZ;
-
-  float magX;
-  float magY;
-  float magZ;
-  */
-
-  //float gyroScaleFactor = 2000.0 / 32767.0;
 
   float deltaTime;
   float currentTime;
   float previousTime;
+  Serial.print(F("GYRO_SCALE_FACTOR:"));
+  Serial.println(GYRO_SCALE_FACTOR);
+  Serial.print(F("ACCEL_SCALE_FACTOR:"));
+  Serial.println(ACCEL_SCALE_FACTOR);
   
   while(1){
-    
     icm.getEvent(&accel, &gyro, &temp, &mag);
     currentTime = micros();
     deltaTime = (currentTime - previousTime) / 1000000.0;
-
-    /*
+    
     // read gyrometer's values
-    gyroX = gyro.gyro.x;
-    gyroY = gyro.gyro.y;
-    gyroZ = gyro.gyro.z;
+    GyroX = gyro.gyro.x;
+    GyroY = gyro.gyro.y;
+    GyroZ = gyro.gyro.z;
 
     // read accelerometer's values
-    accX = accel.acceleration.x;
-    accY = accel.acceleration.y;
-    accZ = accel.acceleration.z;
+    AccX = accel.acceleration.x;
+    AccY = accel.acceleration.y;
+    AccZ = accel.acceleration.z;
 
-    magX = mag.magnetic.x;
-    magY = mag.magnetic.y;
-    magZ = mag.magnetic.z;
-    */
-    
-    /*
-    // calculate angle change in 3 axis
-    X_angle +=  gyroX * deltaTime * 360 / 6.6;
-    Y_angle +=  gyroY * deltaTime * 360 / 6.6;
-    Z_angle +=  gyroZ * deltaTime * 360 / 6.6;
-    
-    
-    // calculate radians in 3 axis
-    X_rad = radians(X_angle);
-    Y_rad = radians(Y_angle);
-    Z_rad = radians(Z_angle);
-    
-
-    // read accelerometer's values
-    accX = accel.acceleration.x;
-    accY_ref = accel.acceleration.y;
-    accZ_ref = accel.acceleration.z;
-    
-    // coordinate transformation according to orientation
-    //accX = accX_ref * cos(Y_rad) * cos(Z_rad) 
-    //     - accY_ref * cos(X_rad) * sin(Z_rad)
-    //     + accZ_ref * cos(X_rad) * sin(Y_rad);
+    MagX = mag.magnetic.x;
+    MagY = mag.magnetic.y;
+    MagZ = mag.magnetic.z;
 
     // calculate velocity in 3 axis
-    velX = accX * deltaTime;
+    //velX = accX * deltaTime;
     //velY = accY * deltaTime;
     //velZ = accZ * deltaTime;
 
     // calculate displacement in 3 axis
-    disX = velX * deltaTime;
+    //disX = velX * deltaTime;
     //disY = velY * deltaTime;
     //disZ = velZ * deltaTime;
 
     //Serial.println(X_angle);
     //Serial.println(deltaTime);
 
-    */
-    getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
+    
+    //getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
     Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, deltaTime); //Updates roll_IMU, pitch_IMU, and yaw_IMU angle estimates (degrees)
     //Madgwick(gyroX, -gyroY, -gyroZ, -accX, accY, accZ, -magX, magY, magZ, deltaTime);
+    /*
+    Serial.print(F("GyroX:"));
+    Serial.print(GyroX);
+    Serial.print(F(" GyroY:"));
+    Serial.print(GyroY);
+    Serial.print(F(" GyroZ:"));
+    Serial.println(GyroZ);
+    */
+    Serial.print(F("roll:"));
+    Serial.print(roll_IMU);
+    Serial.print(F(" pitch:"));
+    Serial.print(pitch_IMU);
+    Serial.print(F(" yaw:"));
     Serial.println(yaw_IMU);
+    
+    //delay(1000);
 
     previousTime = currentTime;
   }
@@ -219,7 +179,8 @@ void getIMUdata() {
   sensors_event_t gyro;
   sensors_event_t mag;
   sensors_event_t temp;
-  int16_t AcX,AcY,AcZ,GyX,GyY,GyZ,MgX,MgY,MgZ;
+  float AcX,AcY,AcZ,GyX,GyY,GyZ,MgX,MgY,MgZ;
+  //float AcTotal;
   icm.getEvent(&accel, &gyro, &temp, &mag);
   // read gyrometer's values
   GyX = gyro.gyro.x;
@@ -235,8 +196,15 @@ void getIMUdata() {
   MgY = mag.magnetic.y;
   MgZ = mag.magnetic.z;
 
-
- //Accelerometer
+  //Serial.print(F("AccX:"));
+  //Serial.print(AcX);
+  //Serial.print(F(" AccY:"));
+  //Serial.print(AcY);
+  //Serial.print(F(" AccZ:"));
+  //Serial.println(AcZ);
+  //AcTotal = AcX*AcX + AcY*AcY + AcZ*AcZ;
+  //Serial.println(AcTotal);
+  //Accelerometer
   AccX = AcX / ACCEL_SCALE_FACTOR; //G's
   AccY = AcY / ACCEL_SCALE_FACTOR;
   AccZ = AcZ / ACCEL_SCALE_FACTOR;
@@ -245,9 +213,9 @@ void getIMUdata() {
   AccY = AccY - AccErrorY;
   AccZ = AccZ - AccErrorZ;
   //LP filter accelerometer data
-  AccX = (1.0 - B_accel)*AccX_prev + B_accel*AccX;
-  AccY = (1.0 - B_accel)*AccY_prev + B_accel*AccY;
-  AccZ = (1.0 - B_accel)*AccZ_prev + B_accel*AccZ;
+  //AccX = (1.0 - B_accel)*AccX_prev + B_accel*AccX;
+  //AccY = (1.0 - B_accel)*AccY_prev + B_accel*AccY;
+  //AccZ = (1.0 - B_accel)*AccZ_prev + B_accel*AccZ;
   AccX_prev = AccX;
   AccY_prev = AccY;
   AccZ_prev = AccZ;
@@ -308,9 +276,9 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   }
 
   //Convert gyroscope degrees/sec to radians/sec
-  gx *= 0.0174533f;
-  gy *= 0.0174533f;
-  gz *= 0.0174533f;
+  //gx *= 0.0174533f;
+  //gy *= 0.0174533f;
+  //gz *= 0.0174533f;
 
   //Rate of change of quaternion from gyroscope
   qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
@@ -323,15 +291,15 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
 
     //Normalise accelerometer measurement
     recipNorm = invSqrt(ax * ax + ay * ay + az * az);
-    ax *= recipNorm;
-    ay *= recipNorm;
-    az *= recipNorm;
+    //ax *= recipNorm;
+    //ay *= recipNorm;
+    //az *= recipNorm;
 
     //Normalise magnetometer measurement
     recipNorm = invSqrt(mx * mx + my * my + mz * mz);
-    mx *= recipNorm;
-    my *= recipNorm;
-    mz *= recipNorm;
+    //mx *= recipNorm;
+    //my *= recipNorm;
+    //mz *= recipNorm;
 
     //Auxiliary variables to avoid repeated arithmetic
     _2q0mx = 2.0f * q0 * mx;
@@ -413,9 +381,9 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
   float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2 ,_8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
 
   //Convert gyroscope degrees/sec to radians/sec
-  gx *= 0.0174533f;
-  gy *= 0.0174533f;
-  gz *= 0.0174533f;
+  //gx *= 0.0174533f;
+  //gy *= 0.0174533f;
+  //gz *= 0.0174533f;
 
   //Rate of change of quaternion from gyroscope
   qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
@@ -485,7 +453,7 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
 
 float invSqrt(float x) {
   //Fast inverse sqrt for madgwick filter
-  /*
+  
   float halfx = 0.5f * x;
   float y = x;
   long i = *(long*)&y;
@@ -494,7 +462,7 @@ float invSqrt(float x) {
   y = y * (1.5f - (halfx * y * y));
   y = y * (1.5f - (halfx * y * y));
   return y;
-  */
+  
   /*
   //alternate form:
   unsigned int i = 0x5F1F1412 - (*(unsigned int*)&x >> 1);
@@ -502,5 +470,6 @@ float invSqrt(float x) {
   float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
   return y;
   */
-  return 1.0/sqrtf(x); //Teensy is fast enough to just take the compute penalty lol suck it arduino nano
+  //return 1.0/sqrtf(x); //Teensy is fast enough to just take the compute penalty lol suck it arduino nano
 }
+
