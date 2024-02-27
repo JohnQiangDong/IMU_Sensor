@@ -63,10 +63,6 @@ void loop() {
   float deltaTime;
   float currentTime;
   float previousTime;
-  Serial.print(F("GYRO_SCALE_FACTOR:"));
-  Serial.println(GYRO_SCALE_FACTOR);
-  Serial.print(F("ACCEL_SCALE_FACTOR:"));
-  Serial.println(ACCEL_SCALE_FACTOR);
   
   while(1){
     icm.getEvent(&accel, &gyro, &temp, &mag);
@@ -75,7 +71,7 @@ void loop() {
     
     getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
     Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, deltaTime); //Updates roll_IMU, pitch_IMU, and yaw_IMU angle estimates (degrees)
-
+    Print_Quaternion();
     /*
     Serial.print(F("GyroX:"));
     Serial.print(GyroX);
@@ -84,12 +80,7 @@ void loop() {
     Serial.print(F(" GyroZ:"));
     Serial.println(GyroZ);
     */
-    Serial.print(F("roll:"));
-    Serial.print(roll_IMU);
-    Serial.print(F(" pitch:"));
-    Serial.print(pitch_IMU);
-    Serial.print(F(" yaw:"));
-    Serial.println(yaw_IMU);
+
     
     //delay(1000);
 
@@ -280,7 +271,7 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   q1 *= recipNorm;
   q2 *= recipNorm;
   q3 *= recipNorm;
-  
+
   //compute angles - NWU
   roll_IMU = atan2(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2)*57.29577951; //degrees
   pitch_IMU = -asin(-2.0f * (q1*q3 - q0*q2))*57.29577951; //degrees
@@ -386,4 +377,25 @@ float invSqrt(float x) {
   */
   //return 1.0/sqrtf(x); //Teensy is fast enough to just take the compute penalty lol suck it arduino nano
 }
+
+void Print_Quaternion(){
+  Serial.print(F("w:"));
+  Serial.print(q0);
+  Serial.print(F(" x:"));
+  Serial.print(q1);
+  Serial.print(F(" y:"));
+  Serial.print(q2);  
+  Serial.print(F(" z:"));
+  Serial.println(q3);
+}
+
+void Print_Euler_Angles(){
+  Serial.print(F("roll:"));
+  Serial.print(roll_IMU);
+  Serial.print(F(" pitch:"));
+  Serial.print(pitch_IMU);
+  Serial.print(F(" yaw:"));
+  Serial.println(yaw_IMU);
+}
+
 
