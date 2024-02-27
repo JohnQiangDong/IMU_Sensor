@@ -31,14 +31,14 @@ public class imu : MonoBehaviour
             pitch = float.Parse(dataParts[1]);
             yaw = float.Parse(dataParts[2]);
             
-            ApplyRotation(pitch, yaw, roll);
+            ApplyRotation(0, 0, roll);
         }
 
     }
     void ApplyRotation(float pitch, float yaw, float roll)
     {
         // Create a Vector3 with the Euler angles in degrees
-        Vector3 eulerRotation = new Vector3(pitch, yaw, roll);
+        Vector3 eulerRotation = new Vector3(pitch, -yaw, -roll);
 
         // Apply the rotation to the target object
         Cube.transform.eulerAngles = eulerRotation;

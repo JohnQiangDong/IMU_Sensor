@@ -42,51 +42,11 @@ float GyroErrorX = 0.0;
 float GyroErrorY= 0.0;
 float GyroErrorZ = 0.0;
 
-float ACCEL_SCALE_FACTOR;
-float GYRO_SCALE_FACTOR;
-
-
 void setup() {
   // put your setup code here, to run once:
   // put your setup code here, to run once:
   Serial.begin(115200);
   IMU_init();
-  switch (icm.getAccelRange()) {
-    case ICM20948_ACCEL_RANGE_2_G:
-        ACCEL_SCALE_FACTOR = 16384.0f;
-        //Serial.println("+-2G");
-        break;
-    case ICM20948_ACCEL_RANGE_4_G:
-        ACCEL_SCALE_FACTOR = 8192.0f;
-        //Serial.println("+-4G");
-        break;
-    case ICM20948_ACCEL_RANGE_8_G:
-        //Serial.println("+-8G");
-        ACCEL_SCALE_FACTOR = 4096.0f;
-        break;
-    case ICM20948_ACCEL_RANGE_16_G:
-        //Serial.println("+-16G");
-        ACCEL_SCALE_FACTOR = 2048.0f;
-        break;
-    }
-  switch (icm.getGyroRange()) {
-    case ICM20948_GYRO_RANGE_250_DPS:
-        //Serial.println("250 degrees/s");
-        GYRO_SCALE_FACTOR = 131.0;
-        break;
-    case ICM20948_GYRO_RANGE_500_DPS:
-        //Serial.println("500 degrees/s");
-        GYRO_SCALE_FACTOR = 65.5;
-        break;
-    case ICM20948_GYRO_RANGE_1000_DPS:
-        //Serial.println("1000 degrees/s");
-        GYRO_SCALE_FACTOR = 32.8;
-        break;
-    case ICM20948_GYRO_RANGE_2000_DPS:
-        //Serial.println("2000 degrees/s");
-        GYRO_SCALE_FACTOR = 16.4;
-        break;
-    }
   delay(5);
 }
 
@@ -113,37 +73,9 @@ void loop() {
     currentTime = micros();
     deltaTime = (currentTime - previousTime) / 1000000.0;
     
-    // read gyrometer's values
-    GyroX = gyro.gyro.x;
-    GyroY = gyro.gyro.y;
-    GyroZ = gyro.gyro.z;
-
-    // read accelerometer's values
-    AccX = accel.acceleration.x;
-    AccY = accel.acceleration.y;
-    AccZ = accel.acceleration.z;
-
-    MagX = mag.magnetic.x;
-    MagY = mag.magnetic.y;
-    MagZ = mag.magnetic.z;
-
-    // calculate velocity in 3 axis
-    //velX = accX * deltaTime;
-    //velY = accY * deltaTime;
-    //velZ = accZ * deltaTime;
-
-    // calculate displacement in 3 axis
-    //disX = velX * deltaTime;
-    //disY = velY * deltaTime;
-    //disZ = velZ * deltaTime;
-
-    //Serial.println(X_angle);
-    //Serial.println(deltaTime);
-
-    
-    //getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
+    getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
     Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, deltaTime); //Updates roll_IMU, pitch_IMU, and yaw_IMU angle estimates (degrees)
-    //Madgwick(gyroX, -gyroY, -gyroZ, -accX, accY, accZ, -magX, magY, magZ, deltaTime);
+
     /*
     Serial.print(F("GyroX:"));
     Serial.print(GyroX);
@@ -196,34 +128,26 @@ void getIMUdata() {
   MgY = mag.magnetic.y;
   MgZ = mag.magnetic.z;
 
-  //Serial.print(F("AccX:"));
-  //Serial.print(AcX);
-  //Serial.print(F(" AccY:"));
-  //Serial.print(AcY);
-  //Serial.print(F(" AccZ:"));
-  //Serial.println(AcZ);
-  //AcTotal = AcX*AcX + AcY*AcY + AcZ*AcZ;
-  //Serial.println(AcTotal);
   //Accelerometer
-  AccX = AcX / ACCEL_SCALE_FACTOR; //G's
-  AccY = AcY / ACCEL_SCALE_FACTOR;
-  AccZ = AcZ / ACCEL_SCALE_FACTOR;
+  AccX = AcX; //G's
+  AccY = AcY;
+  AccZ = AcZ;
   //Correct the outputs with the calculated error values
   AccX = AccX - AccErrorX;
   AccY = AccY - AccErrorY;
   AccZ = AccZ - AccErrorZ;
   //LP filter accelerometer data
-  //AccX = (1.0 - B_accel)*AccX_prev + B_accel*AccX;
-  //AccY = (1.0 - B_accel)*AccY_prev + B_accel*AccY;
-  //AccZ = (1.0 - B_accel)*AccZ_prev + B_accel*AccZ;
+  AccX = (1.0 - B_accel)*AccX_prev + B_accel*AccX;
+  AccY = (1.0 - B_accel)*AccY_prev + B_accel*AccY;
+  AccZ = (1.0 - B_accel)*AccZ_prev + B_accel*AccZ;
   AccX_prev = AccX;
   AccY_prev = AccY;
   AccZ_prev = AccZ;
 
   //Gyro
-  GyroX = GyX / GYRO_SCALE_FACTOR; //deg/sec
-  GyroY = GyY / GYRO_SCALE_FACTOR;
-  GyroZ = GyZ / GYRO_SCALE_FACTOR;
+  GyroX = GyX; //deg/sec
+  GyroY = GyY;
+  GyroZ = GyZ;
   //Correct the outputs with the calculated error values
   GyroX = GyroX - GyroErrorX;
   GyroY = GyroY - GyroErrorY;
@@ -237,9 +161,9 @@ void getIMUdata() {
   GyroZ_prev = GyroZ;
 
   //Magnetometer
-  MagX = MgX/6.0; //uT
-  MagY = MgY/6.0;
-  MagZ = MgZ/6.0;
+  MagX = MgX; //uT
+  MagY = MgY;
+  MagZ = MgZ;
   //Correct the outputs with the calculated error values
   MagX = (MagX - MagErrorX)*MagScaleX;
   MagY = (MagY - MagErrorY)*MagScaleY;
@@ -275,11 +199,6 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
     return;
   }
 
-  //Convert gyroscope degrees/sec to radians/sec
-  //gx *= 0.0174533f;
-  //gy *= 0.0174533f;
-  //gz *= 0.0174533f;
-
   //Rate of change of quaternion from gyroscope
   qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
   qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
@@ -291,15 +210,15 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
 
     //Normalise accelerometer measurement
     recipNorm = invSqrt(ax * ax + ay * ay + az * az);
-    //ax *= recipNorm;
-    //ay *= recipNorm;
-    //az *= recipNorm;
+    ax *= recipNorm;
+    ay *= recipNorm;
+    az *= recipNorm;
 
     //Normalise magnetometer measurement
     recipNorm = invSqrt(mx * mx + my * my + mz * mz);
-    //mx *= recipNorm;
-    //my *= recipNorm;
-    //mz *= recipNorm;
+    mx *= recipNorm;
+    my *= recipNorm;
+    mz *= recipNorm;
 
     //Auxiliary variables to avoid repeated arithmetic
     _2q0mx = 2.0f * q0 * mx;
@@ -364,7 +283,7 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   
   //compute angles - NWU
   roll_IMU = atan2(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2)*57.29577951; //degrees
-  pitch_IMU = -asin(constrain(-2.0f * (q1*q3 - q0*q2),-0.999999,0.999999))*57.29577951; //degrees
+  pitch_IMU = -asin(-2.0f * (q1*q3 - q0*q2))*57.29577951; //degrees
   yaw_IMU = -atan2(q1*q2 + q0*q3, 0.5f - q2*q2 - q3*q3)*57.29577951; //degrees
 }
 
@@ -379,11 +298,6 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
   float s0, s1, s2, s3;
   float qDot1, qDot2, qDot3, qDot4;
   float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2 ,_8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
-
-  //Convert gyroscope degrees/sec to radians/sec
-  //gx *= 0.0174533f;
-  //gy *= 0.0174533f;
-  //gz *= 0.0174533f;
 
   //Rate of change of quaternion from gyroscope
   qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
@@ -447,7 +361,7 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
 
   //Compute angles
   roll_IMU = atan2(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2)*57.29577951; //degrees
-  pitch_IMU = -asin(constrain(-2.0f * (q1*q3 - q0*q2),-0.999999,0.999999))*57.29577951; //degrees
+  pitch_IMU = -asin(-2.0f * (q1*q3 - q0*q2))*57.29577951; //degrees
   yaw_IMU = -atan2(q1*q2 + q0*q3, 0.5f - q2*q2 - q3*q3)*57.29577951; //degrees
 }
 
